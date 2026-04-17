@@ -1,0 +1,6 @@
+@AprendeYa_HostAddress = http://localhost:5195
+
+GET {{AprendeYa_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
