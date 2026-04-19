@@ -1,13 +1,18 @@
 
 using API_AprendeYa.Services;
 using API_AprendeYa.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication.JwtBearer; // NUEVO
-using Microsoft.IdentityModel.Tokens; // NUEVO
-using Microsoft.OpenApi.Models; // NUEVO
-using System.Text; // NUEVO
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using Dapper; // 👈 AGREGA ESTO
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 👇 ESTA LÍNEA SOLUCIONA TODO
+Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+
+builder.Services.AddScoped<IForoService, ForoService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICursoService, CursoService>();
@@ -70,3 +75,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
+

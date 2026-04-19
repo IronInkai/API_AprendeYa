@@ -9,7 +9,7 @@ namespace API_AprendeYa.Models
         public int IdTema { get; set; }
 
         [Required]
-        public string Tipo { get; set; } // video, texto, etc.
+        public string Tipo { get; set; } 
 
         [Url]
         public string Url { get; set; }
