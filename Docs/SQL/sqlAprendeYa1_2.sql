@@ -21,16 +21,77 @@ CREATE TABLE persona (
     telefono VARCHAR(20)
 );
 
+-- =========================
+-- TABLA USUARIO
+-- =========================
 CREATE TABLE usuario (
-    id_usuario INT PRIMARY KEY IDENTITY,
-    id_persona INT UNIQUE,
-    id_rol INT,
-    username VARCHAR(50),
-    password VARCHAR(255),
-    estado BIT,
+    id_usuario          INT IDENTITY(1,1) PRIMARY KEY, -- PK autoincremental
+    id_persona          INT UNIQUE,                    -- Relación con persona
+    id_rol              INT,                           -- Relación con rol
+    username            VARCHAR(50) NOT NULL UNIQUE,   -- Nombre de usuario único
+    contrasena_hash     VARCHAR(255) NOT NULL,         -- Contraseña en formato hash
+    contrasena_literal  VARCHAR(255) NULL,             -- Contraseña en texto plano (solo pruebas)
+    estado              BIT DEFAULT 1,                 -- Estado activo/inactivo
+    fecha_registro      DATETIME NOT NULL DEFAULT GETDATE(),
+    fecha_actualizacion DATETIME NULL,
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
     FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
 );
+
+-- =========================
+-- PROCEDIMIENTO: Insertar Usuario con hash
+-- =========================
+-- Este procedimiento recibe la contraseña en texto plano,
+-- la convierte en hash y guarda ambos valores en la tabla.
+-- NOTA: En producción, lo ideal es NO guardar contrasena_literal.
+-- Se incluye aquí solo para pruebas y auditoría.
+-- =========================
+
+CREATE PROCEDURE sp_insertar_usuario
+    @id_persona INT,
+    @id_rol INT,
+    @username VARCHAR(50),
+    @contrasena_literal VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Generar hash de la contraseña usando HASHBYTES (ejemplo con SHA2_256)
+    DECLARE @contrasena_hash VARCHAR(255);
+    SET @contrasena_hash = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @contrasena_literal), 2);
+
+    -- Insertar el usuario con ambos valores
+    INSERT INTO usuario (id_persona, id_rol, username, contrasena_hash, contrasena_literal, estado, fecha_registro)
+    VALUES (@id_persona, @id_rol, @username, @contrasena_hash, @contrasena_literal, 1, GETDATE());
+END;
+GO
+
+-- =========================
+-- PROCEDIMIENTO: Actualizar Contraseña
+-- =========================
+-- Permite cambiar la contraseña de un usuario.
+-- Convierte la nueva contraseña literal en hash automáticamente.
+-- =========================
+
+CREATE PROCEDURE sp_actualizar_contrasena
+    @id_usuario INT,
+    @nueva_contrasena_literal VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @nueva_contrasena_hash VARCHAR(255);
+    SET @nueva_contrasena_hash = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @nueva_contrasena_literal), 2);
+
+    UPDATE usuario
+    SET contrasena_hash = @nueva_contrasena_hash,
+        contrasena_literal = @nueva_contrasena_literal,
+        fecha_actualizacion = GETDATE()
+    WHERE id_usuario = @id_usuario;
+END;
+GO
+
+
 
 -- =========================
 -- HERENCIA
