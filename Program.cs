@@ -1,3 +1,4 @@
+
 using API_AprendeYa.Services;
 using API_AprendeYa.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer; // NUEVO
@@ -9,6 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ICursoService, CursoService>();
+builder.Services.AddScoped<INivelService, NivelService>();
+builder.Services.AddScoped<IModuloService, ModuloService>();
+builder.Services.AddScoped<ITemaService, TemaService>();
+builder.Services.AddScoped<IContenidoService, ContenidoService>();
 builder.Services.AddEndpointsApiExplorer();
 
 // 1. CONFIGURAR SWAGGER PARA QUE ACEPTE TOKENS
@@ -47,8 +53,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
-
-builder.Services.AddScoped<ICursoService, CursoService>();
 
 var app = builder.Build();
 

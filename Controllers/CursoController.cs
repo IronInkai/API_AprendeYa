@@ -46,7 +46,7 @@ namespace API_AprendeYa.Controllers
             return Ok(_service.DeleteCurso(id));
         }
 
-        // 🔍 FILTRO
+        //FILTRO
         [HttpGet("filtrar")]
         public async Task<IActionResult> Filtrar(int? nivel, int? categoria)
         {
