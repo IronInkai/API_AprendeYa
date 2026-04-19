@@ -375,3 +375,15 @@ VALUES
 ('Introducción a la Ilustración Digital', 'Conceptos básicos para dibujar en Procreate y Photoshop.', 29.50, 1, 2, 2, 'https://img.ejemplo.com/ilustracion.jpg', 'Publicado'),
 ('Marketing para Creativos', 'Aprende a vender tu trabajo en redes sociales.', 35.00, 1, 2, 3, 'https://img.ejemplo.com/mkt.jpg', 'Publicado');
 
+
+INSERT INTO rol (nombre)
+VALUES ('Administrador');
+
+INSERT INTO persona (nombres, apellidos, correo, telefono)
+VALUES ('Juan', 'Pérez', 'juan.perez@example.com', '987654321');
+
+EXEC sp_insertar_usuario 
+    @id_persona = 1,
+    @id_rol = 1,
+    @username = 'juanperez',
+    @contrasena_literal = 'MiPassword123';
