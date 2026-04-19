@@ -340,3 +340,31 @@ CREATE TABLE certificado (
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
     FOREIGN KEY (id_curso) REFERENCES curso(id_curso)
 );
+
+-- Insertar Niveles
+INSERT INTO nivel (nombre) VALUES ('Introductorio'), ('Intermedio'), ('Avanzado');
+
+-- Insertar Categorías (Inspiradas en Domestika)
+INSERT INTO categoria (nombre, descripcion) VALUES 
+('Diseño', 'Cursos de diseño gráfico, industrial y de interiores'),
+('Ilustración', 'Técnicas de dibujo digital y tradicional'),
+('Marketing', 'Marketing digital, SEO y redes sociales'),
+('Programación', 'Desarrollo web, móvil y bases de datos');
+
+-- Insertar Personas para Instructores
+INSERT INTO persona (nombres, apellidos, correo, telefono) VALUES 
+('Carlos', 'Sánchez', 'csanchez@email.com', '987654321'),
+('Ana', 'López', 'alopez@email.com', '912345678');
+
+-- Convertirlos en Instructores
+INSERT INTO instructor (id_persona, especialidad, descripcion) VALUES 
+(1, 'Desarrollo .NET', 'Arquitecto de software con 10 años de experiencia'),
+(2, 'Diseño UI/UX', 'Especialista en interfaces modernas y minimalistas');
+
+-- Insertar Cursos
+INSERT INTO curso (titulo, descripcion, precio, id_nivel, id_instructor, 
+					id_categoria, imagen_url, estado)
+VALUES 
+('Dominando .NET Core con Dapper', 'Aprende a crear APIs profesionales con alto rendimiento.', 49.99, 2, 1, 4, 'https://img.ejemplo.com/dotnet.jpg', 'Publicado'),
+('Introducción a la Ilustración Digital', 'Conceptos básicos para dibujar en Procreate y Photoshop.', 29.50, 1, 2, 2, 'https://img.ejemplo.com/ilustracion.jpg', 'Publicado'),
+('Marketing para Creativos', 'Aprende a vender tu trabajo en redes sociales.', 35.00, 1, 2, 3, 'https://img.ejemplo.com/mkt.jpg', 'Publicado');
