@@ -47,7 +47,7 @@ CREATE TABLE usuario (
 -- Se incluye aquí solo para pruebas y auditoría.
 -- =========================
 
-CREATE PROCEDURE sp_insertar_usuario
+CREATE OR ALTER PROCEDURE sp_insertar_usuario
     @id_persona INT,
     @id_rol INT,
     @username VARCHAR(50),
@@ -73,7 +73,7 @@ GO
 -- Convierte la nueva contraseña literal en hash automáticamente.
 -- =========================
 
-CREATE PROCEDURE sp_actualizar_contrasena
+CREATE OR ALTER PROCEDURE sp_actualizar_contrasena
     @id_usuario INT,
     @nueva_contrasena_literal VARCHAR(255)
 AS
@@ -97,7 +97,7 @@ GO
 -- HERENCIA
 -- =========================
 
-CREATE TABLE adminstrador (
+CREATE TABLE administrador (
     id_admin INT PRIMARY KEY IDENTITY,
     id_persona INT UNIQUE,
     nivel_acceso VARCHAR(50),
@@ -152,9 +152,19 @@ CREATE TABLE curso (
     precio DECIMAL(10,2),
     id_nivel INT,
     id_instructor INT,
+    id_categoria INT,
+    imagen_url VARCHAR(255),
     estado VARCHAR(50),
+
     FOREIGN KEY (id_nivel) REFERENCES nivel(id_nivel),
-    FOREIGN KEY (id_instructor) REFERENCES instructor(id_instructor)
+    FOREIGN KEY (id_instructor) REFERENCES instructor(id_instructor),
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
+);
+
+CREATE TABLE categoria (
+    id_categoria INT PRIMARY KEY IDENTITY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion VARCHAR(255)
 );
 
 CREATE TABLE modulo (
