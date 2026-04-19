@@ -2,19 +2,16 @@
 using API_AprendeYa.Services.Interfaces;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using System.Data.Common;
 
 namespace API_AprendeYa.Services
 {
-    public class CursoService : ICursoService
+    public class CursoService : BaseService, ICursoService
     {
-        private readonly IConfiguration _config;
-        private readonly string _connection;
+        //private readonly IConfiguration _config;
+        //private readonly string _connection;
 
-        public CursoService(IConfiguration config)
-        {
-            _config = config;
-            _connection = _config.GetConnectionString("DefaultConnection");
-        }
+        public CursoService(IConfiguration config) : base(config) { }
 
         public List<Curso> GetCursos()
         {

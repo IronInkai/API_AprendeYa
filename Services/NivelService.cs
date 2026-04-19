@@ -5,14 +5,11 @@ using Microsoft.Data.SqlClient;
 
 namespace API_AprendeYa.Services
 {
-    public class NivelService : INivelService
+    public class NivelService : BaseService, INivelService
     {
-        private readonly string _connection;
+        //private readonly string _connection;
 
-        public NivelService(IConfiguration config)
-        {
-            _connection = config.GetConnectionString("DefaultConnection");
-        }
+        public NivelService(IConfiguration config) : base(config) { }
 
         public List<Nivel> GetNiveles()
         {

@@ -5,14 +5,11 @@ using Microsoft.Data.SqlClient;
 
 namespace API_AprendeYa.Services
 {
-    public class TemaService : ITemaService
+    public class TemaService : BaseService, ITemaService
     {
-        private readonly string _connection;
+        //private readonly string _connection;
 
-        public TemaService(IConfiguration config)
-        {
-            _connection = config.GetConnectionString("DefaultConnection");
-        }
+        public TemaService(IConfiguration config) : base(config) { }
 
         public List<Tema> GetTemas()
         {

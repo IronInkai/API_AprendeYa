@@ -5,14 +5,11 @@ using Microsoft.Data.SqlClient;
 
 namespace API_AprendeYa.Services
 {
-    public class ModuloService : IModuloService
+    public class ModuloService : BaseService, IModuloService
     {
-        private readonly string _connection;
+        //private readonly string _connection;
 
-        public ModuloService(IConfiguration config)
-        {
-            _connection = config.GetConnectionString("DefaultConnection");
-        }
+        public ModuloService(IConfiguration config) : base(config) { }
 
         public List<Modulo> GetModulos()
         {
