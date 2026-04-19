@@ -7,6 +7,8 @@ using System.Text; // NUEVO
 
 var builder = WebApplication.CreateBuilder(args);
 
+var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddEndpointsApiExplorer();
@@ -47,6 +49,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+
+builder.Services.AddScoped<ICursoService, CursoService>();
 
 var app = builder.Build();
 

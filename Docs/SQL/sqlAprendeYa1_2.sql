@@ -21,22 +21,83 @@ CREATE TABLE persona (
     telefono VARCHAR(20)
 );
 
+-- =========================
+-- TABLA USUARIO
+-- =========================
 CREATE TABLE usuario (
-    id_usuario INT PRIMARY KEY IDENTITY,
-    id_persona INT UNIQUE,
-    id_rol INT,
-    username VARCHAR(50),
-    password VARCHAR(255),
-    estado BIT,
+    id_usuario          INT IDENTITY(1,1) PRIMARY KEY, -- PK autoincremental
+    id_persona          INT UNIQUE,                    -- Relación con persona
+    id_rol              INT,                           -- Relación con rol
+    username            VARCHAR(50) NOT NULL UNIQUE,   -- Nombre de usuario único
+    contrasena_hash     VARCHAR(255) NOT NULL,         -- Contraseña en formato hash
+    contrasena_literal  VARCHAR(255) NULL,             -- Contraseña en texto plano (solo pruebas)
+    estado              BIT DEFAULT 1,                 -- Estado activo/inactivo
+    fecha_registro      DATETIME NOT NULL DEFAULT GETDATE(),
+    fecha_actualizacion DATETIME NULL,
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
     FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
 );
 
 -- =========================
+-- PROCEDIMIENTO: Insertar Usuario con hash
+-- =========================
+-- Este procedimiento recibe la contraseña en texto plano,
+-- la convierte en hash y guarda ambos valores en la tabla.
+-- NOTA: En producción, lo ideal es NO guardar contrasena_literal.
+-- Se incluye aquí solo para pruebas y auditoría.
+-- =========================
+
+CREATE OR ALTER PROCEDURE sp_insertar_usuario
+    @id_persona INT,
+    @id_rol INT,
+    @username VARCHAR(50),
+    @contrasena_literal VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Generar hash de la contraseña usando HASHBYTES (ejemplo con SHA2_256)
+    DECLARE @contrasena_hash VARCHAR(255);
+    SET @contrasena_hash = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @contrasena_literal), 2);
+
+    -- Insertar el usuario con ambos valores
+    INSERT INTO usuario (id_persona, id_rol, username, contrasena_hash, contrasena_literal, estado, fecha_registro)
+    VALUES (@id_persona, @id_rol, @username, @contrasena_hash, @contrasena_literal, 1, GETDATE());
+END;
+GO
+
+-- =========================
+-- PROCEDIMIENTO: Actualizar Contraseña
+-- =========================
+-- Permite cambiar la contraseña de un usuario.
+-- Convierte la nueva contraseña literal en hash automáticamente.
+-- =========================
+
+CREATE OR ALTER PROCEDURE sp_actualizar_contrasena
+    @id_usuario INT,
+    @nueva_contrasena_literal VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @nueva_contrasena_hash VARCHAR(255);
+    SET @nueva_contrasena_hash = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @nueva_contrasena_literal), 2);
+
+    UPDATE usuario
+    SET contrasena_hash = @nueva_contrasena_hash,
+        contrasena_literal = @nueva_contrasena_literal,
+        fecha_actualizacion = GETDATE()
+    WHERE id_usuario = @id_usuario;
+END;
+GO
+
+
+
+-- =========================
 -- HERENCIA
 -- =========================
 
-CREATE TABLE adminstrador (
+CREATE TABLE administrador (
     id_admin INT PRIMARY KEY IDENTITY,
     id_persona INT UNIQUE,
     nivel_acceso VARCHAR(50),
@@ -91,9 +152,19 @@ CREATE TABLE curso (
     precio DECIMAL(10,2),
     id_nivel INT,
     id_instructor INT,
+    id_categoria INT,
+    imagen_url VARCHAR(255),
     estado VARCHAR(50),
+
     FOREIGN KEY (id_nivel) REFERENCES nivel(id_nivel),
-    FOREIGN KEY (id_instructor) REFERENCES instructor(id_instructor)
+    FOREIGN KEY (id_instructor) REFERENCES instructor(id_instructor),
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
+);
+
+CREATE TABLE categoria (
+    id_categoria INT PRIMARY KEY IDENTITY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion VARCHAR(255)
 );
 
 CREATE TABLE modulo (
@@ -269,3 +340,31 @@ CREATE TABLE certificado (
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
     FOREIGN KEY (id_curso) REFERENCES curso(id_curso)
 );
+
+-- Insertar Niveles
+INSERT INTO nivel (nombre) VALUES ('Introductorio'), ('Intermedio'), ('Avanzado');
+
+-- Insertar Categorías (Inspiradas en Domestika)
+INSERT INTO categoria (nombre, descripcion) VALUES 
+('Diseño', 'Cursos de diseño gráfico, industrial y de interiores'),
+('Ilustración', 'Técnicas de dibujo digital y tradicional'),
+('Marketing', 'Marketing digital, SEO y redes sociales'),
+('Programación', 'Desarrollo web, móvil y bases de datos');
+
+-- Insertar Personas para Instructores
+INSERT INTO persona (nombres, apellidos, correo, telefono) VALUES 
+('Carlos', 'Sánchez', 'csanchez@email.com', '987654321'),
+('Ana', 'López', 'alopez@email.com', '912345678');
+
+-- Convertirlos en Instructores
+INSERT INTO instructor (id_persona, especialidad, descripcion) VALUES 
+(1, 'Desarrollo .NET', 'Arquitecto de software con 10 años de experiencia'),
+(2, 'Diseño UI/UX', 'Especialista en interfaces modernas y minimalistas');
+
+-- Insertar Cursos
+INSERT INTO curso (titulo, descripcion, precio, id_nivel, id_instructor, 
+					id_categoria, imagen_url, estado)
+VALUES 
+('Dominando .NET Core con Dapper', 'Aprende a crear APIs profesionales con alto rendimiento.', 49.99, 2, 1, 4, 'https://img.ejemplo.com/dotnet.jpg', 'Publicado'),
+('Introducción a la Ilustración Digital', 'Conceptos básicos para dibujar en Procreate y Photoshop.', 29.50, 1, 2, 2, 'https://img.ejemplo.com/ilustracion.jpg', 'Publicado'),
+('Marketing para Creativos', 'Aprende a vender tu trabajo en redes sociales.', 35.00, 1, 2, 3, 'https://img.ejemplo.com/mkt.jpg', 'Publicado');
