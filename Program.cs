@@ -7,8 +7,6 @@ using System.Text; // NUEVO
 
 var builder = WebApplication.CreateBuilder(args);
 
-var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddEndpointsApiExplorer();
