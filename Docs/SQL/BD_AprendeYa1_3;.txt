@@ -1,4 +1,9 @@
-CREATE DATABASE AprendeYa;
+--DROP DATABASE AprendeYa;
+
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'AprendeYa')
+BEGIN
+    CREATE DATABASE AprendeYa;
+END
 GO
 
 USE AprendeYa;
@@ -21,77 +26,34 @@ CREATE TABLE persona (
     telefono VARCHAR(20)
 );
 
+CREATE TABLE nivel (
+    id_nivel INT PRIMARY KEY IDENTITY,
+    nombre VARCHAR(50)
+);
+
+CREATE TABLE categoria (
+    id_categoria INT PRIMARY KEY IDENTITY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion VARCHAR(255)
+);
+GO
+
 -- =========================
 -- TABLA USUARIO
 -- =========================
 CREATE TABLE usuario (
     id_usuario          INT IDENTITY(1,1) PRIMARY KEY, -- PK autoincremental
-    id_persona          INT UNIQUE,                    -- RelaciÛn con persona
-    id_rol              INT,                           -- RelaciÛn con rol
-    username            VARCHAR(50) NOT NULL UNIQUE,   -- Nombre de usuario ˙nico
-    contrasena_hash     VARCHAR(255) NOT NULL,         -- ContraseÒa en formato hash
-    contrasena_literal  VARCHAR(255) NULL,             -- ContraseÒa en texto plano (solo pruebas)
+    id_persona          INT UNIQUE,                    -- Relaci√≥n con persona
+    id_rol              INT,                           -- Relaci√≥n con rol
+    username            VARCHAR(50) NOT NULL UNIQUE,   -- Nombre de usuario √∫nico
+    contrasena_hash     VARCHAR(255) NOT NULL,         -- Contrase√±a en formato hash
+    contrasena_literal  VARCHAR(255) NULL,             -- Contrase√±a en texto plano (solo pruebas)
     estado              BIT DEFAULT 1,                 -- Estado activo/inactivo
     fecha_registro      DATETIME NOT NULL DEFAULT GETDATE(),
     fecha_actualizacion DATETIME NULL,
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
     FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
 );
-
--- =========================
--- PROCEDIMIENTO: Insertar Usuario con hash
--- =========================
--- Este procedimiento recibe la contraseÒa en texto plano,
--- la convierte en hash y guarda ambos valores en la tabla.
--- NOTA: En producciÛn, lo ideal es NO guardar contrasena_literal.
--- Se incluye aquÌ solo para pruebas y auditorÌa.
--- =========================
-
-CREATE OR ALTER PROCEDURE sp_insertar_usuario
-    @id_persona INT,
-    @id_rol INT,
-    @username VARCHAR(50),
-    @contrasena_literal VARCHAR(255)
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Generar hash de la contraseÒa usando HASHBYTES (ejemplo con SHA2_256)
-    DECLARE @contrasena_hash VARCHAR(255);
-    SET @contrasena_hash = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @contrasena_literal), 2);
-
-    -- Insertar el usuario con ambos valores
-    INSERT INTO usuario (id_persona, id_rol, username, contrasena_hash, contrasena_literal, estado, fecha_registro)
-    VALUES (@id_persona, @id_rol, @username, @contrasena_hash, @contrasena_literal, 1, GETDATE());
-END;
-GO
-
--- =========================
--- PROCEDIMIENTO: Actualizar ContraseÒa
--- =========================
--- Permite cambiar la contraseÒa de un usuario.
--- Convierte la nueva contraseÒa literal en hash autom·ticamente.
--- =========================
-
-CREATE OR ALTER PROCEDURE sp_actualizar_contrasena
-    @id_usuario INT,
-    @nueva_contrasena_literal VARCHAR(255)
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DECLARE @nueva_contrasena_hash VARCHAR(255);
-    SET @nueva_contrasena_hash = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @nueva_contrasena_literal), 2);
-
-    UPDATE usuario
-    SET contrasena_hash = @nueva_contrasena_hash,
-        contrasena_literal = @nueva_contrasena_literal,
-        fecha_actualizacion = GETDATE()
-    WHERE id_usuario = @id_usuario;
-END;
-GO
-
-
 
 -- =========================
 -- HERENCIA
@@ -140,11 +102,6 @@ CREATE TABLE direccion (
 -- CURSOS
 -- =========================
 
-CREATE TABLE nivel (
-    id_nivel INT PRIMARY KEY IDENTITY,
-    nombre VARCHAR(50)
-);
-
 CREATE TABLE curso (
     id_curso INT PRIMARY KEY IDENTITY,
     titulo VARCHAR(150),
@@ -159,12 +116,6 @@ CREATE TABLE curso (
     FOREIGN KEY (id_nivel) REFERENCES nivel(id_nivel),
     FOREIGN KEY (id_instructor) REFERENCES instructor(id_instructor),
     FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
-);
-
-CREATE TABLE categoria (
-    id_categoria INT PRIMARY KEY IDENTITY,
-    nombre VARCHAR(100) NOT NULL,
-    descripcion VARCHAR(255)
 );
 
 CREATE TABLE modulo (
@@ -340,31 +291,99 @@ CREATE TABLE certificado (
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
     FOREIGN KEY (id_curso) REFERENCES curso(id_curso)
 );
+GO
+
+-- =========================
+-- PROCEDIMIENTO: Insertar Usuario con hash
+-- =========================
+-- Este procedimiento recibe la contrase√±a en texto plano,
+-- la convierte en hash y guarda ambos valores en la tabla.
+-- NOTA: En producci√≥n, lo ideal es NO guardar contrasena_literal.
+-- Se incluye aqu√≠ solo para pruebas y auditor√≠a.
+-- =========================
+
+CREATE OR ALTER PROCEDURE sp_insertar_usuario
+    @id_persona INT,
+    @id_rol INT,
+    @username VARCHAR(50),
+    @contrasena_literal VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Generar hash de la contrase√±a usando HASHBYTES (ejemplo con SHA2_256)
+    DECLARE @contrasena_hash VARCHAR(255);
+    SET @contrasena_hash = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @contrasena_literal), 2);
+
+    -- Insertar el usuario con ambos valores
+    INSERT INTO usuario (id_persona, id_rol, username, contrasena_hash, contrasena_literal, estado, fecha_registro)
+    VALUES (@id_persona, @id_rol, @username, @contrasena_hash, @contrasena_literal, 1, GETDATE());
+END;
+GO
+
+-- =========================
+-- PROCEDIMIENTO: Actualizar Contrase√±a
+-- =========================
+-- Permite cambiar la contrase√±a de un usuario.
+-- Convierte la nueva contrase√±a literal en hash autom√°ticamente.
+-- =========================
+
+CREATE OR ALTER PROCEDURE sp_actualizar_contrasena
+    @id_usuario INT,
+    @nueva_contrasena_literal VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @nueva_contrasena_hash VARCHAR(255);
+    SET @nueva_contrasena_hash = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @nueva_contrasena_literal), 2);
+
+    UPDATE usuario
+    SET contrasena_hash = @nueva_contrasena_hash,
+        contrasena_literal = @nueva_contrasena_literal,
+        fecha_actualizacion = GETDATE()
+    WHERE id_usuario = @id_usuario;
+END;
+GO
+
 
 -- Insertar Niveles
 INSERT INTO nivel (nombre) VALUES ('Introductorio'), ('Intermedio'), ('Avanzado');
 
--- Insertar CategorÌas (Inspiradas en Domestika)
+-- Insertar Categor√≠as (Inspiradas en Domestika)
 INSERT INTO categoria (nombre, descripcion) VALUES 
-('DiseÒo', 'Cursos de diseÒo gr·fico, industrial y de interiores'),
-('IlustraciÛn', 'TÈcnicas de dibujo digital y tradicional'),
+('Dise√±o', 'Cursos de dise√±o gr√°fico, industrial y de interiores'),
+('Ilustraci√≥n', 'T√©cnicas de dibujo digital y tradicional'),
 ('Marketing', 'Marketing digital, SEO y redes sociales'),
-('ProgramaciÛn', 'Desarrollo web, mÛvil y bases de datos');
+('Programaci√≥n', 'Desarrollo web, m√≥vil y bases de datos');
 
 -- Insertar Personas para Instructores
 INSERT INTO persona (nombres, apellidos, correo, telefono) VALUES 
-('Carlos', 'S·nchez', 'csanchez@email.com', '987654321'),
-('Ana', 'LÛpez', 'alopez@email.com', '912345678');
+('Carlos', 'S√°nchez', 'csanchez@email.com', '987654321'),
+('Ana', 'L√≥pez', 'alopez@email.com', '912345678');
 
 -- Convertirlos en Instructores
 INSERT INTO instructor (id_persona, especialidad, descripcion) VALUES 
-(1, 'Desarrollo .NET', 'Arquitecto de software con 10 aÒos de experiencia'),
-(2, 'DiseÒo UI/UX', 'Especialista en interfaces modernas y minimalistas');
+(1, 'Desarrollo .NET', 'Arquitecto de software con 10 a√±os de experiencia'),
+(2, 'Dise√±o UI/UX', 'Especialista en interfaces modernas y minimalistas');
 
 -- Insertar Cursos
 INSERT INTO curso (titulo, descripcion, precio, id_nivel, id_instructor, 
 					id_categoria, imagen_url, estado)
 VALUES 
 ('Dominando .NET Core con Dapper', 'Aprende a crear APIs profesionales con alto rendimiento.', 49.99, 2, 1, 4, 'https://img.ejemplo.com/dotnet.jpg', 'Publicado'),
-('IntroducciÛn a la IlustraciÛn Digital', 'Conceptos b·sicos para dibujar en Procreate y Photoshop.', 29.50, 1, 2, 2, 'https://img.ejemplo.com/ilustracion.jpg', 'Publicado'),
+('Introducci√≥n a la Ilustraci√≥n Digital', 'Conceptos b√°sicos para dibujar en Procreate y Photoshop.', 29.50, 1, 2, 2, 'https://img.ejemplo.com/ilustracion.jpg', 'Publicado'),
 ('Marketing para Creativos', 'Aprende a vender tu trabajo en redes sociales.', 35.00, 1, 2, 3, 'https://img.ejemplo.com/mkt.jpg', 'Publicado');
+
+
+INSERT INTO rol (nombre)
+VALUES ('Administrador');
+
+INSERT INTO persona (nombres, apellidos, correo, telefono)
+VALUES ('Juan', 'P√©rez', 'juan.perez@example.com', '987654321');
+
+EXEC sp_insertar_usuario 
+    @id_persona = 1,
+    @id_rol = 1,
+    @username = 'juanperez',
+    @contrasena_literal = 'MiPassword123';
