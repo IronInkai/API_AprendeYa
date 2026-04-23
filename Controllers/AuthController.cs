@@ -16,11 +16,24 @@ namespace API_AprendeYa.Controllers
         }
 
         [HttpPost("registro")]
-        public async Task<IActionResult> Registro([FromBody] RegistroRequest request)
+        public async Task<IActionResult> RegistrarUsuario([FromBody] RegistroRequest request)
         {
-            var resultado = await _usuarioService.RegistrarUsuarioAsync(request);
-            if (resultado) return Ok(new { mensaje = "Cuenta creada con éxito" });
-            return BadRequest(new { mensaje = "Error al crear la cuenta" });
+            try
+            {
+                var exito = await _usuarioService.RegistrarUsuarioAsync(request);
+                if (exito)
+                {
+                    return Ok(new { mensaje = "Cuenta creada exitosamente" });
+                }
+
+                // Si exito es falso pero no hubo excepción
+                return BadRequest(new { mensaje = "El usuario o correo ya existen" });
+            }
+            catch (Exception ex)
+            {
+                // ¡AQUÍ ESTÁ LA TRAMPA! Ahora imprimiremos el error exacto de SQL
+                return BadRequest(new { mensaje = "Error SQL: " + ex.Message });
+            }
         }
 
         [HttpPost("login")]
