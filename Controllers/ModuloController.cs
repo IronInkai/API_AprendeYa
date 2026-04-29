@@ -22,6 +22,12 @@ namespace API_AprendeYa.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(int id) => Ok(_service.GetModuloById(id));
 
+        [HttpGet("PorCurso/{idCurso}")]
+        public IActionResult GetByCurso(int idCurso)
+        {            
+            return Ok(_service.GetModulosByCurso(idCurso));
+        }
+
         [HttpPost]
         public IActionResult Insert(Modulo modulo) => Ok(_service.InsertModulo(modulo));
 
