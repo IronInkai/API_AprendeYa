@@ -4,10 +4,17 @@ namespace API_AprendeYa.Services.Interfaces
 {
     public interface IUsuarioService
     {
-        // Método para registrar la Persona y el Usuario en una sola transacción
+        // === MÉTODOS DE AUTENTICACIÓN ===
         Task<bool> RegistrarUsuarioAsync(RegistroRequest request);
-
-        // Método para validar credenciales y devolver los datos del usuario junto con el Token JWT
         Task<UsuarioSesion> LoginAsync(LoginRequest request);
+
+        // === MÉTODOS CRUD ADMINISTRADOR ===
+        List<UsuarioAdmin> GetUsuarios();
+        List<CursoMatriculado> ObtenerCursosDeAlumno(int idUsuario);
+        UsuarioAdmin GetUsuarioById(int idUsuario);
+        bool InsertUsuario(UsuarioAdmin usuario);
+        bool UpdateUsuario(UsuarioAdmin usuario);
+        bool DeleteUsuario(int idUsuario);
+        bool MatricularAlumno(int idUsuario, int idCurso);
     }
 }

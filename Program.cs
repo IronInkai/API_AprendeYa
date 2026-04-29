@@ -1,17 +1,17 @@
-
 using API_AprendeYa.Services;
 using API_AprendeYa.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using Dapper; // 👈 AGREGA ESTO
+using Dapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 👇 ESTA LÍNEA SOLUCIONA TODO
+// 👇 ESTA LÍNEA SOLUCIONA TODO EL MAPEO DE DAPPER
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
+// REGISTRO DE SERVICIOS
 builder.Services.AddScoped<IForoService, ForoService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -43,7 +43,20 @@ builder.Services.AddSwaggerGen(c =>
     }});
 });
 
-// 2. CONFIGURAR LA AUTENTICACIÓN JWT
+// ==========================================
+// CONFIGURACIÓN CORS (Permitir que el Frontend nos hable via JS)
+// ==========================================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()    // Permite peticiones de cualquier puerto/dominio
+              .AllowAnyHeader()    // Permite cualquier tipo de encabezado
+              .AllowAnyMethod();   // Permite GET, POST, PUT, DELETE, etc.
+    });
+});
+
+// 2. CONFIGURAR LA AUTENTICACIÓN JWT (¡TODO ANTES DEL BUILD!)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -58,7 +71,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
-
+builder.Services.AddScoped<ICarritoService, CarritoService>();
+builder.Services.AddScoped<IVentaService, VentaService>();
+// =========================================================
+// ¡AQUÍ CERRAMOS LA MOCHILA Y CONSTRUIMOS LA APP! (Una sola vez)
+// =========================================================
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -69,10 +86,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 3. ¡IMPORTANTE! UseAuthentication debe ir ANTES de UseAuthorization
+// 3. EL ORDEN ES VITAL AQUÍ:
+// Primero abrimos la puerta para los navegadores (CORS)
+app.UseCors("PermitirFrontend");
+
+// Segundo pedimos el Token (Authentication)
 app.UseAuthentication();
+
+// Tercero verificamos a dónde puede entrar (Authorization)
 app.UseAuthorization();
 
 app.MapControllers();
-app.Run();
 
+app.Run();
