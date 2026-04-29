@@ -70,9 +70,28 @@ namespace API_AprendeYa.Services
             }
         }
 
-        public Task<bool> RegistrarUsuarioAsync(RegistroRequest request)
+        public async Task<bool> RegistrarUsuarioAsync(RegistroRequest request)
         {
-            throw new NotImplementedException();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@Nombres", request.Nombres);
+                parameters.Add("@Apellidos", request.Apellidos);
+                parameters.Add("@Correo", request.Correo);
+                parameters.Add("@Telefono", request.Telefono);
+                parameters.Add("@Username", request.Username);
+                parameters.Add("@Password", request.Password);
+
+                // ¡AQUÍ ESTÁ EL CAMBIO CLAVE! 
+                // El nombre debe ser el del nuevo procedimiento que creamos
+                var result = await connection.ExecuteAsync(
+                    "sp_registrar_usuario_completo",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                return result > 0;
+            }
         }
+
     }
 }

@@ -7,7 +7,7 @@
         public string Correo { get; set; }
         public string Telefono { get; set; }
 
-        // Datos de Usuario
+        // Datos de Usuario 
         public string Username { get; set; }
         public string Password { get; set; }
     }
